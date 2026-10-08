@@ -23,12 +23,18 @@
         autoResize();
         updateLineNumbers();
 
-        // Sync line numbers scroll with editor scroll
-        if (lineNumbers) {
-            editor.addEventListener('scroll', function() {
-                lineNumbers.scrollTop = editor.scrollTop;
-            });
-        }
+        // Line heights depend on wrapping, so re-measure whenever the editor's
+        // width changes (panel resize, sidebar toggle, wrapper scrollbar).
+        // The textarea never scrolls itself (overflow: hidden) — the wrapper
+        // scrolls it together with the line numbers.
+        let lastWidth = editor.clientWidth;
+        new ResizeObserver(function() {
+            const width = editor.clientWidth;
+            if (width && width !== lastWidth) {
+                lastWidth = width;
+                scheduleLayoutRefresh();
+            }
+        }).observe(editor);
 
         // Setup event listeners
         setupEventListeners();
@@ -84,6 +90,7 @@
                 if (lineNumbers) {
                     lineNumbers.style.fontSize = '14px';
                 }
+                refreshLayout();
             }
         });
 
@@ -265,6 +272,7 @@
 
         editor.style.direction = newDir;
         editor.style.textAlign = newAlign;
+        refreshLayout();
     }
 
     function autoResize() {
@@ -274,6 +282,24 @@
         // Set new height based on scroll height
         const newHeight = Math.max(200, editor.scrollHeight);
         editor.style.height = newHeight + 'px';
+    }
+
+    // Anything that changes how text wraps (width, font size, direction)
+    // invalidates both the textarea height and the per-line gutter heights.
+    function refreshLayout() {
+        autoResize();
+        updateLineNumbers();
+    }
+
+    let layoutFrame = 0;
+    function scheduleLayoutRefresh() {
+        if (layoutFrame) {
+            return;
+        }
+        layoutFrame = requestAnimationFrame(function() {
+            layoutFrame = 0;
+            refreshLayout();
+        });
     }
 
     function updateLineNumbers() {
@@ -335,9 +361,11 @@
         if (rtlCount > ltrCount && editor.style.direction !== 'rtl') {
             editor.style.direction = 'rtl';
             editor.style.textAlign = 'right';
+            refreshLayout();
         } else if (ltrCount > rtlCount && editor.style.direction !== 'ltr') {
             editor.style.direction = 'ltr';
             editor.style.textAlign = 'left';
+            refreshLayout();
         }
     }
 
@@ -354,6 +382,7 @@
         if (lineNumbers) {
             lineNumbers.style.fontSize = newSize + 'px';
         }
+        refreshLayout();
     }
 
     // Listen for messages from the extension

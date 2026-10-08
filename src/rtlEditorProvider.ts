@@ -177,7 +177,9 @@ export class RtlEditorProvider implements vscode.CustomTextEditorProvider {
             vscode.Uri.joinPath(this.context.extensionUri, 'media', 'editor.js')
         );
 
-        // Get current content
+        // Get current content. The HTML parser drops one newline right after
+        // <textarea>, so the template emits a sacrificial one to keep a
+        // leading blank line in the document.
         const content = document.getText();
         const fileName = path.basename(document.uri.fsPath);
 
@@ -199,7 +201,7 @@ export class RtlEditorProvider implements vscode.CustomTextEditorProvider {
             
             <div class="editor-container">
                 <div class="editor-wrapper">
-                    <textarea id="editor" class="rtl-editor" placeholder="Start typing in RTL mode...">${this.escapeHtml(content)}</textarea>
+                    <textarea id="editor" class="rtl-editor" placeholder="Start typing in RTL mode...">\n${this.escapeHtml(content)}</textarea>
                     <div id="line-numbers" class="line-numbers"></div>
                     <div id="line-mirror" class="line-mirror"></div>
                 </div>
