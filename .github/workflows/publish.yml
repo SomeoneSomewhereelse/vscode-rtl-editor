@@ -1,13 +1,12 @@
 name: Publish to VS Code Marketplace
 
-# Auto-publish the extension whenever a change lands on master
-# (e.g. a merged pull request). Each publish automatically bumps the
-# patch version, commits + tags the bump, and pushes it back.
+# Publish the extension to the Marketplace. Each publish automatically
+# bumps the patch version, commits + tags the bump, and pushes it back.
+#
+# Auto-publish on push to master is disabled in this fork, which is
+# installed directly rather than from the Marketplace. Publishing is
+# manual-only (Actions tab).
 on:
-  push:
-    branches: [master]
-
-  # Allow manually triggering a publish from the Actions tab as well.
   workflow_dispatch: {}
 
 # Needed so the workflow can push the version-bump commit + tag back.
